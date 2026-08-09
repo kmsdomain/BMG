@@ -92,7 +92,7 @@ class _PlayerApprovalPageState extends State<PlayerApprovalPage> {
 
       if (status == "APPROVED") {
         url =
-            "http://bmgtournies.runasp.net/api/TournamentPlayers/ApprovePlayer?tournamentID=$tournamentID&tournamentPlayerID=$tournamentPlayerID";
+            "https://bmgtournies.runasp.net/api/TournamentPlayers/ApprovePlayer?tournamentID=$tournamentID&tournamentPlayerID=$tournamentPlayerID";
       } else {
         url =
             "https://bmgtournies.runasp.net/api/TournamentPlayers/RejectPlayer?tournamentID=$tournamentID&tournamentPlayerID=$tournamentPlayerID";
