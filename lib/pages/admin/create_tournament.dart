@@ -90,7 +90,7 @@ class _CreateTournamentPageState extends State<CreateTournamentPage> {
   Future<void> loadTournamentTypes() async {
     try {
       final response = await http.get(
-        Uri.parse("http://bmgtournies.runasp.net/api/TournamentTypes"),
+        Uri.parse("https://bmgtournies.runasp.net/api/TournamentTypes"),
       );
 
       if (response.statusCode == 200) {
@@ -263,7 +263,7 @@ class _CreateTournamentPageState extends State<CreateTournamentPage> {
                 try {
                   final response = await http.post(
                     Uri.parse(
-                      "http://bmgtournies.runasp.net/api/Tournament/CreateTournament",
+                      "https://bmgtournies.runasp.net/api/Tournament/CreateTournament",
                     ),
                     headers: {"Content-Type": "application/json"},
                     body: jsonEncode({

@@ -54,7 +54,7 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     try {
-      final url = Uri.parse("http://bmgtournies.runasp.net/api/register");
+      final url = Uri.parse("https://bmgtournies.runasp.net/api/register");
 
       final response = await http.post(
         url,

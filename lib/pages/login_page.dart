@@ -40,7 +40,7 @@ class _LoginpageState extends State<Loginpage> {
 
     try {
       final response = await http.post(
-        Uri.parse("http://bmgtournies.runasp.net/api/Login"),
+        Uri.parse("https://bmgtournies.runasp.net/api/Login"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "email": emailController.text.trim(),

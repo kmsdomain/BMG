@@ -82,7 +82,7 @@ class _UserHomePageState extends State<UserHomePage> {
 
   Future<void> loadTournaments() async {
     final response = await http.get(
-      Uri.parse("http://bmgtournies.runasp.net/api/Tournament/TournamentList"),
+      Uri.parse("https://bmgtournies.runasp.net/api/Tournament/TournamentList"),
     );
 
     if (response.statusCode == 200) {
@@ -120,7 +120,7 @@ class _UserHomePageState extends State<UserHomePage> {
     }
 
     final response = await http.post(
-      Uri.parse("http://bmgtournies.runasp.net/api/Tournament/JoinTournament"),
+      Uri.parse("https://bmgtournies.runasp.net/api/Tournament/JoinTournament"),
 
       headers: {"Content-Type": "application/json"},
 

@@ -31,7 +31,7 @@ class _TournamentDetailsPageState extends State<TournamentDetailsPage> {
     try {
       final response = await http.get(
         Uri.parse(
-          "http://bmgtournies.runasp.net/api/TournamentPlayers/ByTournament/${widget.tournamentID}",
+          "https://bmgtournies.runasp.net/api/TournamentPlayers/ByTournament/${widget.tournamentID}",
         ),
       );
 

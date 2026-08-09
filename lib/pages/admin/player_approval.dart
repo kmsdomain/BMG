@@ -54,7 +54,7 @@ class _PlayerApprovalPageState extends State<PlayerApprovalPage> {
     try {
       final response = await http.get(
         Uri.parse(
-          "http://bmgtournies.runasp.net/api/TournamentPlayers/Pending",
+          "https://bmgtournies.runasp.net/api/TournamentPlayers/Pending",
         ),
       );
 
@@ -95,7 +95,7 @@ class _PlayerApprovalPageState extends State<PlayerApprovalPage> {
             "http://bmgtournies.runasp.net/api/TournamentPlayers/ApprovePlayer?tournamentID=$tournamentID&tournamentPlayerID=$tournamentPlayerID";
       } else {
         url =
-            "http://bmgtournies.runasp.net/api/TournamentPlayers/RejectPlayer?tournamentID=$tournamentID&tournamentPlayerID=$tournamentPlayerID";
+            "https://bmgtournies.runasp.net/api/TournamentPlayers/RejectPlayer?tournamentID=$tournamentID&tournamentPlayerID=$tournamentPlayerID";
       }
 
       final response = await http.post(Uri.parse(url));

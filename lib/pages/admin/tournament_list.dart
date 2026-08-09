@@ -83,7 +83,7 @@ class _TournamentListPageState extends State<TournamentListPage> {
   }
 
   Future<void> getTournaments() async {
-    String url = "http://bmgtournies.runasp.net/api/Tournament/TournamentList";
+    String url = "https://bmgtournies.runasp.net/api/Tournament/TournamentList";
 
     url += "?status=$selectedStatus";
 
