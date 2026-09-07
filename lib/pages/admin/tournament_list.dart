@@ -178,132 +178,211 @@ class _TournamentListPageState extends State<TournamentListPage> {
   // ============================================================
   // START TOURNAMENT
   // ============================================================
+ChatGPT said:
 
-  Future<void> startTournament(Tournament tournament) async {
-    // Prevent duplicate requests
-    if (startingTournamentID != null) {
-      return;
-    }
+Yes. Your Flutter code should also read the API response, because your stored procedure can return different results:
 
-    setState(() {
-      startingTournamentID = tournament.tournamentID;
-    });
+    Tournament started
+    Already ongoing / current round in progress
+    Next round created
+    Tournament finished
+    Validation error
+    Tournament not found
 
-    final url =
-        "https://bmgtournies.runasp.net/api/Tournament/StartTournament/${tournament.tournamentID}";
+Here is the complete version of both functions.
+
+// ============================================================
+// START TOURNAMENT
+// ============================================================
+
+Future<void> startTournament(Tournament tournament) async {
+  // Prevent duplicate requests
+  if (startingTournamentID != null) {
+    return;
+  }
+
+  setState(() {
+    startingTournamentID = tournament.tournamentID;
+  });
+
+  final url =
+      "https://bmgtournies.runasp.net/api/Tournament/StartTournament/${tournament.tournamentID}";
+
+  try {
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    );
+
+    if (!mounted) return;
+
+    // ----------------------------------------------------------
+    // Parse API response
+    // ----------------------------------------------------------
+
+    Map<String, dynamic>? data;
 
     try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {"Content-Type": "application/json"},
-      );
+      if (response.body.isNotEmpty) {
+        final decoded = jsonDecode(response.body);
 
-      if (!mounted) return;
+        if (decoded is Map<String, dynamic>) {
+          data = decoded;
+        }
+      }
+    } catch (_) {
+      data = null;
+    }
 
-      if (response.statusCode == 200 || response.statusCode == 204) {
+    // ----------------------------------------------------------
+    // HTTP SUCCESS
+    // ----------------------------------------------------------
+
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      final success = data?["success"];
+
+      final message =
+          data?["message"]?.toString() ??
+          "Tournament started successfully!";
+
+      // --------------------------------------------------------
+      // SQL PROCEDURE SUCCESS
+      // --------------------------------------------------------
+
+      if (success == true || response.statusCode == 204) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Tournament started successfully!"),
+          SnackBar(
+            content: Text(message),
             backgroundColor: Colors.green,
           ),
         );
 
-        // Refresh the list.
-        //
-        // Since the selected tab is UPCOMING,
-        // the tournament should disappear from this list
-        // if its status becomes ONGOING.
+        // Refresh tournament list
         await getTournaments();
-      } else {
-        String message = "Failed to start tournament.";
 
-        try {
-          final body = jsonDecode(response.body);
-
-          if (body is Map && body["message"] != null) {
-            message = body["message"].toString();
-          }
-        } catch (_) {
-          if (response.body.isNotEmpty) {
-            message = response.body;
-          }
-        }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("$message\nStatus: ${response.statusCode}"),
-            backgroundColor: Colors.red,
-          ),
-        );
+        return;
       }
-    } catch (e) {
-      if (!mounted) return;
+
+      // --------------------------------------------------------
+      // SQL PROCEDURE RETURNED SUCCESS = 0
+      // --------------------------------------------------------
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error starting tournament: $e"),
-          backgroundColor: Colors.red,
+          content: Text(message),
+          backgroundColor: Colors.orange,
         ),
       );
-    } finally {
-      if (mounted) {
-        setState(() {
-          startingTournamentID = null;
-        });
-      }
+
+      return;
+    }
+
+    // ----------------------------------------------------------
+    // HTTP ERROR
+    // ----------------------------------------------------------
+
+    String message = "Failed to start tournament.";
+
+    if (data != null && data["message"] != null) {
+      message = data["message"].toString();
+    } else if (response.body.isNotEmpty) {
+      message = response.body;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "$message\nStatus: ${response.statusCode}",
+        ),
+        backgroundColor: Colors.red,
+      ),
+    );
+  } catch (e) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "Error starting tournament:\n$e",
+        ),
+        backgroundColor: Colors.red,
+      ),
+    );
+  } finally {
+    if (mounted) {
+      setState(() {
+        startingTournamentID = null;
+      });
     }
   }
+}
 
-  // ============================================================
-  // CONFIRM START
-  // ============================================================
 
-  void confirmStartTournament(Tournament tournament) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.play_circle_fill, color: Colors.green),
-              SizedBox(width: 8),
-              Text("Start Tournament"),
-            ],
-          ),
+// ============================================================
+// CONFIRM START TOURNAMENT
+// ============================================================
 
-          content: Text(
-            "Are you sure you want to start "
-            "\"${tournament.tournamentName}\"?",
-          ),
-
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("CANCEL"),
+void confirmStartTournament(Tournament tournament) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (dialogContext) {
+      return AlertDialog(
+        title: const Row(
+          children: [
+            Icon(
+              Icons.play_circle_fill,
+              color: Colors.green,
             ),
-
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-              ),
-
-              onPressed: () {
-                Navigator.pop(context);
-
-                startTournament(tournament);
-              },
-
-              child: const Text("START"),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text("Start Tournament"),
             ),
           ],
-        );
-      },
-    );
-  }
+        ),
 
+        content: Text(
+          "Are you sure you want to start "
+          "\"${tournament.tournamentName}\"?",
+        ),
+
+        actions: [
+          // ----------------------------------------------------
+          // CANCEL
+          // ----------------------------------------------------
+
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+            },
+            child: const Text("CANCEL"),
+          ),
+
+          // ----------------------------------------------------
+          // START
+          // ----------------------------------------------------
+
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+
+              startTournament(tournament);
+            },
+
+            child: const Text("START"),
+          ),
+        ],
+      );
+    },
+  );
+}
   // ============================================================
   // BUILD
   // ============================================================
